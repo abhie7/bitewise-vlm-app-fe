@@ -5,10 +5,9 @@ import axios from 'axios'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // Types
 interface User {
-  id: string;
+  uuid: string;
   email: string;
-  display_name: string;
-  role: string | Record<string, string>;
+  userName: string;
 }
 
 interface AuthState {
@@ -35,16 +34,6 @@ const initialState: AuthState = {
   isAuthError: null,
   isAuthSuccess: false,
   token: null,
-}
-
-export const getRole = (user: User): string | null => {
-  if (typeof user.role === 'string') {
-    return user.role
-  } else if (typeof user.role === 'object' && user.role !== null) {
-    const orgId = Object.keys(user.role)[0]
-    return user.role[orgId]
-  }
-  return null
 }
 
 interface LoginCredentials {
@@ -159,9 +148,7 @@ const authSlice = createSlice({
         state.user = action.payload
         state.isAuthError = null
 
-        toast.success(`Welcome ${action.payload.display_name}`, {
-          description: `Your role is: ${getRole(action.payload)}`,
-        })
+        toast.success(`Welcome ${action.payload.userName}`)
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isAuthLoading = false
@@ -179,7 +166,7 @@ const authSlice = createSlice({
         state.isAuthSuccess = true
         state.user = action.payload
         state.isAuthError = null
-        toast.success(`Welcome ${action.payload.display_name}`)
+        toast.success(`Welcome ${action.payload.userName}`)
       })
       .addCase(createUser.rejected, (state, action) => {
         state.isAuthLoading = false
