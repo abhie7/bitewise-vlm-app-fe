@@ -1,6 +1,6 @@
 import { RouteObject } from "react-router";
 import { LoginPage } from "@/app/auth/login";
-// import Register from "@/app/auth/register/page";
+import { RegisterPage } from "@/app/auth/register";
 import PublicLayout from "@/layouts/public-layout";
 
 const publicRoutes: RouteObject[] = [
@@ -12,10 +12,10 @@ const publicRoutes: RouteObject[] = [
         path: "/",
         element: <LoginPage />,
       },
-      // {
-      //   path: "/register",
-      //   element: <Register />,
-      // },
+      {
+        path: "/register",
+        element: <RegisterPage />,
+      },
       // Add other public routes here
     ],
   },

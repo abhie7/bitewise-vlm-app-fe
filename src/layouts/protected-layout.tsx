@@ -6,9 +6,9 @@ const ProtectedLayout = () => {
   return (
     <>
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <div className='flex h-screen bg-background w-full'>
+        <AppSidebar variant="inset" collapsible="icon" />
+        <SidebarInset className="pl-0">
+          <div className='flex h-screen w-full bg-background rounded-2xl'>
             <Outlet />
           </div>
         </SidebarInset>

@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
 import { useSelector } from 'react-redux'
 import { Toaster } from '@/components/ui/sonner'
-import { RouterProvider, createHashRouter, Navigate } from 'react-router'
-import protectedRoutes from '@/routes/protectedRoutes'
-import publicRoutes from '@/routes/publicRoutes'
+import { RouterProvider, createBrowserRouter, Navigate } from 'react-router'
+import protectedRoutes from './routes/protectedRoutes'
+import publicRoutes from './routes/publicRoutes'
 import { ThemeProvider } from '@/components/theme-provider'
 
 interface User {
@@ -27,22 +27,24 @@ interface RootState {
 
 const App = () => {
   const { user } = useSelector((state: RootState) => state.auth)
+  const auth = useSelector((state: RootState) => state.auth);
+  console.log('Auth State:', auth);
+  console.log('User:', user);
 
-  // Handle both array format and object with routes property
   const publicRoutesArray = Array.isArray(publicRoutes)
     ? publicRoutes
-    : (publicRoutes?.routes || []);
+    : publicRoutes?.routes || []
 
   const protectedRoutesArray = Array.isArray(protectedRoutes)
     ? protectedRoutes
-    : (protectedRoutes?.routes || []);
+    : protectedRoutes?.routes || []
 
-  const enhancedPublicRoutes = createHashRouter([
+  const enhancedPublicRoutes = createBrowserRouter([
     ...publicRoutesArray,
     { path: '*', element: <Navigate to='/' replace /> },
   ])
 
-  const enhancedProtectedRoutes = createHashRouter([
+  const enhancedProtectedRoutes = createBrowserRouter([
     ...protectedRoutesArray,
     { path: '*', element: <Navigate to='/' replace /> },
   ])

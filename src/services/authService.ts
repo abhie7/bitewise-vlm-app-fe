@@ -110,13 +110,14 @@ export const resetPassword = createAsyncThunk<void, ResetPasswordData, { rejectV
   }
 )
 
-export const logoutUser = createAsyncThunk(
+export const logoutUser = createAsyncThunk<null, void, { rejectValue: string }>(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
       sessionStorage.removeItem('user')
       return null
     } catch (error: any) {
+      toast.error('Logout failed')
       return rejectWithValue(error.message)
     }
   }
@@ -147,8 +148,7 @@ const authSlice = createSlice({
         state.isAuthSuccess = true
         state.user = action.payload
         state.isAuthError = null
-
-        toast.success(`Welcome ${action.payload.userName}`)
+        toast.success(`Welcome ${action.payload.data.userName}`)
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isAuthLoading = false
@@ -188,11 +188,11 @@ const authSlice = createSlice({
         toast.error(`Password reset failed: ${action.payload}`)
       })
       .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null
-        state.isAuthSuccess = false
-        state.isAuthError = null
-        sessionStorage.clear()
-        toast.success('Logged out successfully!')
+        state.user = null;
+        state.isAuthSuccess = false;
+        state.isAuthError = null;
+        sessionStorage.clear();
+        toast.success('Logged out successfully!');
       })
   },
 })

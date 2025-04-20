@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { loginUser } from '@/services/authService'
 import { AppDispatch, RootState } from '@/store'
 import { useNavigate } from 'react-router'
+import { Magnetic } from '@/components/ui/magnetic'
 
 interface LoginFormProps {
   className?: string
@@ -21,6 +22,8 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   const { isAuthLoading, isAuthError } = useSelector(
     (state: RootState) => state.auth
   )
+
+  const springOptions = { bounce: 0.2 }
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -45,6 +48,10 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
       className={cn('flex flex-col gap-6', className)}
       {...props}
       onSubmit={handleSubmit}
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.3 }}
     >
       <motion.div
         className='flex flex-col items-center gap-3 text-center'
@@ -56,7 +63,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
         <h1 className='text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent'>
           Welcome Back
         </h1>
-        <p className='text-balance text-sm text-slate-500 dark:text-slate-400'>
+        <p className='text-balance text-sm text-slate-400'>
           Sign in to your account to continue your journey
         </p>
       </motion.div>
@@ -68,7 +75,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.4 }}
         >
-          <Label htmlFor='email' className='text-sm font-medium'>
+          <Label htmlFor='email' className='text-secondary text-sm font-medium'>
             Email
           </Label>
           <Input
@@ -77,7 +84,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder='Enter your email address'
-            className='h-12 rounded-lg'
+            className='h-12 rounded-lg text-secondary'
             required
           />
         </motion.div>
@@ -89,12 +96,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           transition={{ delay: 0.3, duration: 0.4 }}
         >
           <div className='flex items-center justify-between'>
-            <Label htmlFor='password' className='text-sm font-medium'>
+            <Label htmlFor='password' className='text-secondary text-sm font-medium'>
               Password
             </Label>
             <motion.a
               onClick={handleForgotPassword}
-              className='text-xs text-primary hover:text-primary/80 font-medium cursor-pointer'
+              className='text-xs text-secondary hover:text-secondary/80 font-medium cursor-pointer'
               whileHover={{ scale: 1.05 }}
             >
               Forgot password?
@@ -107,12 +114,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
               value={password}
               placeholder='Enter your password'
               onChange={(e) => setPassword(e.target.value)}
-              className='h-12 rounded-lg pr-10'
+              className='h-12 rounded-lg pr-10 text-secondary'
               required
             />
             <button
               type='button'
-              className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer'
+              className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 cursor-pointer'
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -125,7 +132,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
 
           {isAuthError && (
             <motion.p
-              className='text-sm text-red-500 mt-1'
+              className='text-sm text-rose-700 mt-1'
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
@@ -139,31 +146,45 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.4 }}
         >
-          <Button
-            type='submit'
-            className='w-full h-12 text-base rounded-lg font-medium cursor-pointer'
-            disabled={isAuthLoading}
+          <Magnetic
+            intensity={0.2}
+            springOptions={springOptions}
+            actionArea='global'
+            range={200}
           >
-            {isAuthLoading ? (
-              <>
-                <motion.div
-                  className='h-5 w-5 border-2 border-white border-t-transparent rounded-full'
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 0.8,
-                    ease: 'linear',
-                  }}
-                />
-                Signing In...
-              </>
-            ) : (
-              'Sign In'
-            )}
-          </Button>
+            <Button
+              type='submit'
+              className='w-full h-12 text-base rounded-lg font-medium cursor-pointer'
+              disabled={isAuthLoading}
+            >
+              <Magnetic
+                intensity={0.1}
+                springOptions={springOptions}
+                actionArea='global'
+                range={200}
+              >
+                {isAuthLoading ? (
+                  <div className='flex items-center gap-2'>
+                    <motion.div
+                      className='h-5 w-5 border-2 border-white border-t-transparent rounded-full'
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 0.8,
+                        ease: 'linear',
+                      }}
+                    />
+                    Signing In...
+                  </div>
+                ) : (
+                  'Sign In'
+                )}
+              </Magnetic>
+            </Button>
+          </Magnetic>
         </motion.div>
 
-        <motion.div
+        {/* <motion.div
           className='relative text-center'
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -177,9 +198,9 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
               or continue with
             </span>
           </div>
-        </motion.div>
+        </motion.div> */}
 
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.4 }}
@@ -193,19 +214,19 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
             <GithubIcon className='h-5 w-5' />
             GitHub
           </Button>
-        </motion.div>
+        </motion.div> */}
       </div>
 
       <motion.div
-        className='mt-2 text-center text-sm text-slate-500 dark:text-slate-400'
+        className='mt-2 text-center text-sm text-slate-400'
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.7, duration: 0.4 }}
       >
         Don't have an account?{' '}
         <motion.a
-          onClick={() => navigate('/auth/register')}
-          className='font-medium text-primary hover:text-primary/80 cursor-pointer'
+          onClick={() => navigate('/register')}
+          className='font-semibold text-primary hover:text-primary/80 cursor-pointer'
           whileHover={{ scale: 1.05 }}
         >
           Create one
