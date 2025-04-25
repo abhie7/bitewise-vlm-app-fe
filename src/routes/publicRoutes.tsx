@@ -16,7 +16,6 @@ const publicRoutes: RouteObject[] = [
         path: "/register",
         element: <RegisterPage />,
       },
-      // Add other public routes here
     ],
   },
 ];

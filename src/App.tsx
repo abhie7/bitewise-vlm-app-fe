@@ -1,63 +1,45 @@
-import { Suspense } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Toaster } from '@/components/ui/sonner'
-import { RouterProvider, createBrowserRouter, Navigate } from 'react-router'
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router'
 import protectedRoutes from './routes/protectedRoutes'
 import publicRoutes from './routes/publicRoutes'
 import { ThemeProvider } from '@/components/theme-provider'
-
-interface User {
-  id: string
-  email: string
-  userName: string
-  role: string | Record<string, string>
-}
-
-interface AuthState {
-  user: User | null
-  isAuthLoading: boolean
-  isAuthError: string | null
-  isAuthSuccess: boolean
-  token: string | null
-}
-
-interface RootState {
-  auth: AuthState
-}
+import { RootState } from './types'
 
 const App = () => {
   const { user } = useSelector((state: RootState) => state.auth)
-  const auth = useSelector((state: RootState) => state.auth);
-  console.log('Auth State:', auth);
-  console.log('User:', user);
+  const [router, setRouter] = useState(() =>
+    user
+      ? createBrowserRouter([
+          ...protectedRoutes,
+          { path: '*', element: <Navigate to='/' replace /> },
+        ])
+      : createBrowserRouter([
+          ...publicRoutes,
+          { path: '*', element: <Navigate to='/' replace /> },
+        ])
+  )
 
-  const publicRoutesArray = Array.isArray(publicRoutes)
-    ? publicRoutes
-    : publicRoutes?.routes || []
+  useEffect(() => {
+    const newRouter = user
+      ? createBrowserRouter([
+          ...protectedRoutes,
+          { path: '*', element: <Navigate to='/' replace /> },
+        ])
+      : createBrowserRouter([
+          ...publicRoutes,
+          { path: '*', element: <Navigate to='/' replace /> },
+        ])
 
-  const protectedRoutesArray = Array.isArray(protectedRoutes)
-    ? protectedRoutes
-    : protectedRoutes?.routes || []
-
-  const enhancedPublicRoutes = createBrowserRouter([
-    ...publicRoutesArray,
-    { path: '*', element: <Navigate to='/' replace /> },
-  ])
-
-  const enhancedProtectedRoutes = createBrowserRouter([
-    ...protectedRoutesArray,
-    { path: '*', element: <Navigate to='/' replace /> },
-  ])
+    setRouter(newRouter)
+  }, [user])
 
   return (
     <ThemeProvider>
       <Toaster richColors expand={true} />
       <Suspense fallback={<div className='spinner-border' role='status' />}>
-        {user ? (
-          <RouterProvider router={enhancedProtectedRoutes} />
-        ) : (
-          <RouterProvider router={enhancedPublicRoutes} />
-        )}
+        <RouterProvider router={router} />
       </Suspense>
     </ThemeProvider>
   )

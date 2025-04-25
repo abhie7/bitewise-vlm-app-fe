@@ -1,21 +1,22 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { toast } from 'sonner'
 import axios from 'axios'
+import socketClient from '../sockets/socketClient'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // Types
 interface User {
-  uuid: string;
-  email: string;
-  userName: string;
+  uuid: string
+  email: string
+  userName: string
 }
 
 interface AuthState {
-  user: User | null;
-  isAuthLoading: boolean;
-  isAuthError: string | null;
-  isAuthSuccess: boolean;
-  token: string | null;
+  user: User | null
+  isAuthLoading: boolean
+  isAuthError: string | null
+  isAuthSuccess: boolean
+  token: string | null
 }
 
 const getUserFromStorage = (): User | null => {
@@ -37,44 +38,49 @@ const initialState: AuthState = {
 }
 
 interface LoginCredentials {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
-export const loginUser = createAsyncThunk<User, LoginCredentials, { rejectValue: string }>(
-  'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
-    try {
-      const response = await axios.post(`${API_URL}/auth/login`, {
-        email: email.toLowerCase(),
-        password
-      })
-      const userData = response.data
-      sessionStorage.setItem('user', JSON.stringify(userData))
-      return userData
-    } catch (error: any) {
-      console.error('Login error:', error)
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Login failed'
-      )
-    }
+export const loginUser = createAsyncThunk<
+  User,
+  LoginCredentials,
+  { rejectValue: string }
+>('auth/login', async ({ email, password }, { rejectWithValue }) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/login`, {
+      email: email.toLowerCase(),
+      password,
+    })
+    const userData = response.data
+    sessionStorage.setItem('user', JSON.stringify(userData))
+    return userData
+  } catch (error: any) {
+    console.error('Login error:', error)
+    return rejectWithValue(
+      error.response?.data?.message || error.message || 'Login failed'
+    )
   }
-)
+})
 
 interface RegisterCredentials {
-  email: string;
-  password: string;
-  userName: string;
+  email: string
+  password: string
+  userName: string
 }
 
-export const createUser = createAsyncThunk<User, RegisterCredentials, { rejectValue: string }>(
+export const createUser = createAsyncThunk<
+  User,
+  RegisterCredentials,
+  { rejectValue: string }
+>(
   'auth/register',
   async ({ email, password, userName }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/register`, {
         email,
         password,
-        userName
+        userName,
       })
       const userData = response.data
       sessionStorage.setItem('user', JSON.stringify(userData))
@@ -89,26 +95,27 @@ export const createUser = createAsyncThunk<User, RegisterCredentials, { rejectVa
 )
 
 interface ResetPasswordData {
-  email: string;
-  newPassword: string;
+  email: string
+  newPassword: string
 }
 
-export const resetPassword = createAsyncThunk<void, ResetPasswordData, { rejectValue: string }>(
-  'auth/resetPassword',
-  async ({ email, newPassword }, { rejectWithValue }) => {
-    try {
-      await axios.post(`${API_URL}/auth/reset-password`, {
-        email,
-        newPassword
-      })
-    } catch (error: any) {
-      console.error('Password reset error:', error)
-      return rejectWithValue(
-        error.response?.data?.message || error.message || 'Password reset failed'
-      )
-    }
+export const resetPassword = createAsyncThunk<
+  void,
+  ResetPasswordData,
+  { rejectValue: string }
+>('auth/resetPassword', async ({ email, newPassword }, { rejectWithValue }) => {
+  try {
+    await axios.post(`${API_URL}/auth/reset-password`, {
+      email,
+      newPassword,
+    })
+  } catch (error: any) {
+    console.error('Password reset error:', error)
+    return rejectWithValue(
+      error.response?.data?.message || error.message || 'Password reset failed'
+    )
   }
-)
+})
 
 export const logoutUser = createAsyncThunk<null, void, { rejectValue: string }>(
   'auth/logout',
@@ -123,6 +130,26 @@ export const logoutUser = createAsyncThunk<null, void, { rejectValue: string }>(
   }
 )
 
+// Initialize app - try to reconnect socket with existing token
+export const initializeAuth = () => {
+  return (dispatch: any) => {
+    const storedUser = sessionStorage.getItem('user')
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser)
+        const token = userData.token || (userData.data && userData.data.token)
+
+        if (token) {
+          // Reconnect socket if we have a token
+          socketClient.connect(token)
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error)
+      }
+    }
+  }
+}
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -134,6 +161,17 @@ const authSlice = createSlice({
       } else {
         sessionStorage.removeItem('user')
       }
+    },
+    resetAuth: (state) => {
+      state.isAuthLoading = false
+      state.isAuthError = null
+      state.isAuthSuccess = false
+    },
+    clearUser: (state) => {
+      state.user = null
+      state.token = null
+      // Force the window location to the login page to ensure proper route change
+      window.location.href = '/'
     },
   },
   extraReducers: (builder) => {
@@ -147,8 +185,31 @@ const authSlice = createSlice({
         state.isAuthLoading = false
         state.isAuthSuccess = true
         state.user = action.payload
+
+        // Properly extract token from either location in the response
+        const token =
+          action.payload.token ||
+          (action.payload.data && action.payload.data.token)
+        state.token = token
         state.isAuthError = null
-        toast.success(`Welcome ${action.payload.data.userName}`)
+
+        // Debug log to check payload structure
+        console.log('Login response:', action.payload)
+
+        // Initialize socket connection with token
+        if (token) {
+          console.log('Connecting socket with token:', token)
+          socketClient.connect(token)
+        } else {
+          console.error('No token available for socket connection')
+        }
+
+        toast.success(
+          `Welcome ${
+            action.payload.userName ||
+            (action.payload.data && action.payload.data.userName)
+          }`
+        )
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isAuthLoading = false
@@ -165,8 +226,31 @@ const authSlice = createSlice({
         state.isAuthLoading = false
         state.isAuthSuccess = true
         state.user = action.payload
+
+        // Properly extract token from either location in the response
+        const token =
+          action.payload.token ||
+          (action.payload.data && action.payload.data.token)
+        state.token = token
         state.isAuthError = null
-        toast.success(`Welcome ${action.payload.userName}`)
+
+        // Debug log to check payload structure
+        console.log('Registration response:', action.payload)
+
+        // Initialize socket connection with token
+        if (token) {
+          console.log('Connecting socket with token:', token)
+          socketClient.connect(token)
+        } else {
+          console.error('No token available for socket connection')
+        }
+
+        toast.success(
+          `Welcome ${
+            action.payload.userName ||
+            (action.payload.data && action.payload.data.userName)
+          }`
+        )
       })
       .addCase(createUser.rejected, (state, action) => {
         state.isAuthLoading = false
@@ -188,11 +272,15 @@ const authSlice = createSlice({
         toast.error(`Password reset failed: ${action.payload}`)
       })
       .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
-        state.isAuthSuccess = false;
-        state.isAuthError = null;
-        sessionStorage.clear();
-        toast.success('Logged out successfully!');
+        socketClient.disconnect()
+        state.user = null
+        state.isAuthSuccess = false
+        state.isAuthError = null
+        state.token = null
+        state.isAuthLoading = false
+        toast.success('Logged out successfully!')
+        sessionStorage.clear()
+        window.location.href = '/'
       })
   },
 })

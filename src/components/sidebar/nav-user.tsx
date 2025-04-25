@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useDispatch } from "react-redux"
 import { logoutUser } from "@/services/authService"
+import { useNavigate } from "react-router"
 
 export function NavUser({
   user,
@@ -44,9 +45,11 @@ export function NavUser({
   const { isMobile } = useSidebar()
 
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const handleLogout = () => {
     dispatch(logoutUser())
+    navigate('/', { replace: true })
   }
 
   return (
