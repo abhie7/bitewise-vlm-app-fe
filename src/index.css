@@ -1,42 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import url('https://fonts.cdnfonts.com/css/bastian-script');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(0.98 0 248);
-  --foreground: oklch(0.21 0.04 266);
-  --card: oklch(0.98 0 248);
-  --card-foreground: oklch(0.21 0.04 266);
-  --popover: oklch(0.97 0.01 248);
-  --popover-foreground: oklch(0.37 0.04 257);
-  --primary: oklch(0.62 0.15 39.04);
-  --primary-foreground: oklch(0.97 0.01 248);
-  --secondary: oklch(0.92 0.01 92.99);
-  --secondary-foreground: oklch(0.43 0.02 98.6);
-  --muted: oklch(0.93 0.02 90.24);
-  --muted-foreground: oklch(0.61 0.01 97.42);
-  --accent: oklch(0.92 0.01 92.99);
-  --accent-foreground: oklch(0.37 0.04 257);
-  --destructive: oklch(0.62 0.2 18.04);
-  --destructive-foreground: oklch(0.97 0.01 248);
-  --border: oklch(0.88 0.01 97.36);
-  --input: oklch(0.76 0.02 98.35);
-  --ring: oklch(0.59 0.17 253.06);
-  --chart-1: oklch(0.56 0.13 43);
-  --chart-2: oklch(0.69 0.16 290.41);
-  --chart-3: oklch(0.88 0.03 93.13);
-  --chart-4: oklch(0.88 0.04 298.18);
-  --chart-5: oklch(0.56 0.13 42.06);
-  --sidebar: oklch(0.97 0.01 98.88);
-  --sidebar-foreground: oklch(0.36 0.01 106.65);
-  --sidebar-primary: oklch(0.62 0.14 39.04);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.92 0.01 92.99);
-  --sidebar-accent-foreground: oklch(0.33 0 0);
-  --sidebar-border: oklch(0.94 0 0);
-  --sidebar-ring: oklch(0.77 0 0);
+  --background: oklch(0.98 0.02 85); /* Warm cream background */
+  --foreground: oklch(0.25 0.05 70); /* Warmer dark text */
+  --card: oklch(0.98 0.02 85);
+  --card-foreground: oklch(0.25 0.05 70);
+  --popover: oklch(0.99 0.02 83);
+  --popover-foreground: oklch(0.3 0.05 75);
+  --primary: oklch(0.65 0.22 55); /* Warmer primary color */
+  --primary-foreground: oklch(0.99 0.01 85);
+  --secondary: oklch(0.92 0.04 80); /* Slightly warmer secondary */
+  --secondary-foreground: oklch(0.43 0.05 75);
+  --muted: oklch(0.93 0.03 82); /* Warmer muted */
+  --muted-foreground: oklch(0.61 0.04 75);
+  --accent: oklch(0.9 0.06 75); /* Warmer accent */
+  --accent-foreground: oklch(0.3 0.05 75);
+  --destructive: oklch(0.65 0.2 25); /* Slightly warmer destructive */
+  --destructive-foreground: oklch(0.99 0.01 85);
+  --border: oklch(0.85 0.03 80);
+  --input: oklch(0.76 0.04 78);
+  --ring: oklch(0.65 0.15 55);
+  --chart-1: oklch(0.65 0.18 45);
+  --chart-2: oklch(0.7 0.16 60);
+  --chart-3: oklch(0.8 0.08 85);
+  --chart-4: oklch(0.75 0.12 70);
+  --chart-5: oklch(0.6 0.15 50);
+  --sidebar: oklch(0.97 0.03 82);
+  --sidebar-foreground: oklch(0.36 0.05 70);
+  --sidebar-primary: oklch(0.62 0.18 55);
+  --sidebar-primary-foreground: oklch(0.99 0.01 85);
+  --sidebar-accent: oklch(0.9 0.06 75);
+  --sidebar-accent-foreground: oklch(0.3 0.05 70);
+  --sidebar-border: oklch(0.85 0.03 80);
+  --sidebar-ring: oklch(0.7 0.1 60);
+  --sidebar-active: oklch(0.93 0.07 70);
+  --sidebar-active-foreground: oklch(0.25 0.18 55);
   --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
@@ -45,6 +48,7 @@
     serif;
   --font-mono: 'DM Sans', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     'Liberation Mono', 'Courier New', monospace;
+  --font-script: 'Bastian Script', sans-serif;
   --radius: 0.5rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -58,6 +62,14 @@
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
     0 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+  /* Scrollbar variables */
+  --scrollbar-size: 8px;
+  --scrollbar-minlength: 40px; /* Minimum length of thumb */
+  --scrollbar-ff-width: thin; /* Firefox specific width */
+  --scrollbar-track-color: transparent; /* Track color */
+  --scrollbar-thumb-color: var(--input);
+  --scrollbar-thumb-hover-color: var(--border);
 }
 
 .dark {
@@ -93,6 +105,8 @@
   --sidebar-accent-foreground: oklch(0.81 0.01 93.01);
   --sidebar-border: oklch(0.94 0 0);
   --sidebar-ring: oklch(0.77 0 0);
+  --sidebar-active: oklch(0.26 0.06 260);
+  --sidebar-active-foreground: oklch(0.87 0.05 93.01);
   --font-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
@@ -105,6 +119,7 @@
     BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
     'Noto Color Emoji';
+  --font-script: 'Bastian Script', sans-serif;
   --radius: 0.5rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -153,10 +168,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
+  --font-script: var(--font-script);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -171,6 +189,41 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+}
+
+/* Custom scrollbar styles */
+/* For Webkit browsers like Chrome/Safari/Edge */
+::-webkit-scrollbar {
+  height: var(--scrollbar-size);
+  width: var(--scrollbar-size);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track-color);
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb-color);
+  border-radius: var(--radius-sm);
+  min-height: var(--scrollbar-minlength);
+  min-width: var(--scrollbar-minlength);
+  transition: background-color 0.3s ease;
+  transition: color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover-color);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var(--background);
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: var(--scrollbar-ff-width);
+  scrollbar-color: var(--scrollbar-thumb-color) var(--scrollbar-track-color);
 }
 
 @layer base {

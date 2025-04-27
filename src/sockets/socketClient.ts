@@ -34,6 +34,7 @@ class SocketClient {
   private API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private TOKEN_STORAGE_KEY = 'socket_auth_token'
+  private SOCKET_ID_KEY = 'socket_id'; // Add this to store socket ID
 
   private constructor() {
     // Try to auto-connect when instance is created (for page refresh)
@@ -50,6 +51,12 @@ class SocketClient {
   }
 
   private autoConnect(): void {
+    // First check if we're already connected anywhere in the app
+    if (this.socket && this.socket.connected) {
+      console.log('Socket already connected, skipping auto-connect')
+      return
+    }
+
     const token = localStorage.getItem(this.TOKEN_STORAGE_KEY)
     if (token) {
       console.log('Auto-connecting socket with stored token')
@@ -66,24 +73,25 @@ class SocketClient {
 
   public connect(token: string): void {
     // Store token for reconnection
-    localStorage.setItem(this.TOKEN_STORAGE_KEY, token)
+    localStorage.setItem(this.TOKEN_STORAGE_KEY, token);
 
+    // Check if we already have a connection
     if (this.socket && this.socket.connected) {
-      console.log('Socket already connected, not reconnecting')
-      return
+      console.log('Socket already connected with ID:', this.socket.id);
+      return;
     }
 
     // Cancel any pending reconnect
     if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer)
-      this.reconnectTimer = null
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
 
-    console.log('Initializing socket connection to:', this.API_URL)
+    console.log('Initializing socket connection to:', this.API_URL);
 
     // Disconnect existing socket if any
     if (this.socket) {
-      this.socket.disconnect()
+      this.socket.disconnect();
     }
 
     // Initialize socket with auth token and increased timeout values
@@ -92,18 +100,21 @@ class SocketClient {
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
-      // Increase timeouts to prevent quick disconnections
       timeout: 20000,
       pingTimeout: 60000,
       pingInterval: 25000,
-      transports: ['websocket', 'polling'], // Try WebSocket first, fallback to polling
-    })
+      transports: ['websocket', 'polling'],
+    });
 
     // Setup base event listeners
     this.socket.on(socketEvents.connect, () => {
-      console.log('Socket connected successfully with ID:', this.socket?.id)
-      toast.success('Connected to server')
-    })
+      console.log('Socket connected successfully with ID:', this.socket?.id);
+      // Store socket ID in localStorage
+      if (this.socket?.id) {
+        localStorage.setItem(this.SOCKET_ID_KEY, this.socket.id);
+      }
+      toast.success('Connected to server');
+    });
 
     this.socket.on(socketEvents.disconnect, (reason) => {
       console.log(`Socket disconnected: ${this.socket?.id}, Reason: ${reason}`)

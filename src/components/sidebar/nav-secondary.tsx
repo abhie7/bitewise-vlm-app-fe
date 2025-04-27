@@ -1,5 +1,10 @@
 import * as React from 'react'
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar'
+import {
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarGroup,
+} from '@/components/ui/sidebar'
 
 interface NavSecondaryProps extends React.HTMLAttributes<HTMLDivElement> {
   items: {
@@ -10,26 +15,32 @@ interface NavSecondaryProps extends React.HTMLAttributes<HTMLDivElement> {
   }[]
 }
 
-export function NavSecondary({ items, className, ...props }: NavSecondaryProps) {
+export function NavSecondary({
+  items,
+  className,
+  ...props
+}: NavSecondaryProps) {
   return (
     <div className={className} {...props}>
-      <SidebarMenu>
-        {items.map((item, index) => (
-          <SidebarMenuItem key={index}>
-            {item.component ? (
-              <div className="flex items-center gap-2 px-2 py-1">
-                <item.component />
-              </div>
-            ) : (
-              <SidebarMenuButton asChild>
-                <a href={item.url}>
-                  <item.icon className="h-4 w-4" />
-                </a>
-              </SidebarMenuButton>
-            )}
-          </SidebarMenuItem>
-        ))}
-      </SidebarMenu>
+      <SidebarGroup>
+        <SidebarMenu>
+          {items.map((item, index) => (
+            <SidebarMenuItem key={index}>
+              {item.component ? (
+                <div className='flex items-center gap-2 px-2 py-1'>
+                  <item.component />
+                </div>
+              ) : (
+                <SidebarMenuButton asChild>
+                  <a href={item.url}>
+                    <item.icon className='h-4 w-4' />
+                  </a>
+                </SidebarMenuButton>
+              )}
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroup>
     </div>
   )
 }

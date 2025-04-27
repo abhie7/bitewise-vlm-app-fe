@@ -13,11 +13,11 @@ const App = () => {
     user
       ? createBrowserRouter([
           ...protectedRoutes,
-          { path: '*', element: <Navigate to='/' replace /> },
+          { path: '*', element: <Navigate to='/dashboard' replace /> },
         ])
       : createBrowserRouter([
           ...publicRoutes,
-          { path: '*', element: <Navigate to='/' replace /> },
+          { path: '*', element: <Navigate to='/login' replace /> },
         ])
   )
 
@@ -25,7 +25,7 @@ const App = () => {
     const newRouter = user
       ? createBrowserRouter([
           ...protectedRoutes,
-          { path: '*', element: <Navigate to='/' replace /> },
+          { path: '*', element: <Navigate to='/dashboard' replace /> },
         ])
       : createBrowserRouter([
           ...publicRoutes,

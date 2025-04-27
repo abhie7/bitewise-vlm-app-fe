@@ -1,19 +1,6 @@
-"use client"
+'use client'
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-} from "lucide-react"
-
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,104 +9,121 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
-import { useDispatch } from "react-redux"
-import { logoutUser } from "@/services/authService"
-import { useNavigate } from "react-router"
+  BadgeCheck,
+  Bell,
+  ChevronsUpDown,
+  CreditCard,
+  LogOut,
+  User,
+} from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/types'
+import { logoutUser } from '@/services/authService'
+import DynamicAvatar from '@/components/ui/dynamic-avatar'
+import { useAppDispatch } from '@/services/store'
+import { SidebarMenuButton } from '../ui/sidebar'
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
+export function NavUser() {
+  const dispatch = useAppDispatch()
+  const { user } = useSelector((state: RootState) => state.auth)
+
+  console.log('user', user)
+
+  if (!user) return null
+
+  const userData = {
+    name: user.data.userName || 'User',
+    email: user.data.email,
+    avatar: user.data.avatar || null,
   }
-}) {
-  const { isMobile } = useSidebar()
-
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  console.log('userData', userData)
 
   const handleLogout = () => {
     dispatch(logoutUser())
-    navigate('/', { replace: true })
   }
 
+  // Check if we have valid avatar data
+  const hasAvatarData = userData.avatar && userData.avatar.avatarData
+
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+      <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer transition-all"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+          <div className='relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full'>
+            {hasAvatarData ? (
+              <DynamicAvatar
+                avatarData={userData.avatar.avatarData}
+                size={32}
+                className='rounded-full'
+              />
+            ) : (
+              <Avatar>
+                <AvatarImage src='/favBlur.svg' alt={userData.name} />
+                <AvatarFallback>
+                  <User className='h-4 w-4' />
+                </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+            )}
+          </div>
+          <div className='grid flex-1 text-left leading-none'>
+            <span className='truncate font-medium'>{userData.name}</span>
+            <span className='truncate text-xs text-muted-foreground'>{userData.email}</span>
+          </div>
+          <ChevronsUpDown className='ml-auto h-4 w-4 shrink-0 opacity-50' />
+        </SidebarMenuButton>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className='w-56' align='end' forceMount>
+        <DropdownMenuLabel className='p-0 font-normal'>
+          <div className='flex flex-col items-center gap-2 p-4 text-center'>
+            <div className='relative h-16 w-16 overflow-hidden rounded-full'>
+              {hasAvatarData ? (
+                <DynamicAvatar
+                  avatarData={userData.avatar.avatarData}
+                  size={64}
+                />
+              ) : (
+                <Avatar className='h-full w-full'>
+                  <AvatarImage src='/favBlur.svg' alt={userData.name} />
+                  <AvatarFallback>
+                    {userData.name.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
-                </div>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-    </SidebarMenu>
+              )}
+            </div>
+            <div className='space-y-1'>
+              <p className='text-sm font-medium leading-none'>{userData.name}</p>
+              <p className='text-xs leading-none text-muted-foreground'>{userData.email}</p>
+            </div>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem>
+            <BadgeCheck className='mr-2 h-4 w-4' />
+            Account
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <CreditCard className='mr-2 h-4 w-4' />
+            Billing
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Bell className='mr-2 h-4 w-4' />
+            Notifications
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem className='cursor-pointer' onClick={handleLogout}>
+          <LogOut className='mr-2 h-4 w-4' />
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

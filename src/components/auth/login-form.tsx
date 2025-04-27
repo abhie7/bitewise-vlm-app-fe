@@ -4,12 +4,13 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { EyeIcon, EyeOffIcon, GithubIcon, SparklesIcon } from 'lucide-react'
-import { useDispatch, useSelector } from 'react-redux'
+import { EyeIcon, EyeOffIcon, SparklesIcon } from 'lucide-react'
+import { useSelector } from 'react-redux'
 import { loginUser } from '@/services/authService'
-import { AppDispatch, RootState } from '@/store'
+import { RootState } from '@/services/store'
 import { useNavigate } from 'react-router'
 import { Magnetic } from '@/components/ui/magnetic'
+import { useAppDispatch } from '@/services/store'
 
 interface LoginFormProps {
   className?: string
@@ -17,7 +18,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ className, ...props }: LoginFormProps) {
-  const dispatch = useDispatch<AppDispatch>()
+  const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { isAuthLoading, isAuthError } = useSelector(
     (state: RootState) => state.auth
@@ -96,7 +97,10 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           transition={{ delay: 0.3, duration: 0.4 }}
         >
           <div className='flex items-center justify-between'>
-            <Label htmlFor='password' className='text-secondary text-sm font-medium'>
+            <Label
+              htmlFor='password'
+              className='text-secondary text-sm font-medium'
+            >
               Password
             </Label>
             <motion.a

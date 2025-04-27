@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { toast } from 'sonner'
 import axios from 'axios'
 import socketClient from '../sockets/socketClient'
+import { connectSocket, disconnectSocket } from './socketService';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // Types
@@ -67,6 +68,20 @@ interface RegisterCredentials {
   email: string
   password: string
   userName: string
+  avatar: {
+    id: number
+    avatarData?: {
+      bgColor: string
+      shapeColor: string
+      faceColor: string
+      transform: string
+      shapeType: string
+      rx: string | number
+      faceType?: string
+      eyeType?: string
+      facePosition?: string
+    }
+  } | null
 }
 
 export const createUser = createAsyncThunk<
@@ -75,16 +90,25 @@ export const createUser = createAsyncThunk<
   { rejectValue: string }
 >(
   'auth/register',
-  async ({ email, password, userName }, { rejectWithValue }) => {
+  async ({ email, password, userName, avatar }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/register`, {
         email,
         password,
-        userName,
+        userName: userName,
+        avatar: avatar
       })
+
       const userData = response.data
-      sessionStorage.setItem('user', JSON.stringify(userData))
-      return userData
+
+      // Enhance user data with the avatar information for client-side use
+      const enhancedUserData = {
+        ...userData,
+        avatar: avatar
+      }
+
+      sessionStorage.setItem('user', JSON.stringify(enhancedUserData))
+      return enhancedUserData
     } catch (error: any) {
       console.error('Registration error:', error)
       return rejectWithValue(
@@ -130,25 +154,27 @@ export const logoutUser = createAsyncThunk<null, void, { rejectValue: string }>(
   }
 )
 
-// Initialize app - try to reconnect socket with existing token
 export const initializeAuth = () => {
   return (dispatch: any) => {
-    const storedUser = sessionStorage.getItem('user')
+    const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
       try {
-        const userData = JSON.parse(storedUser)
-        const token = userData.token || (userData.data && userData.data.token)
+        const userData = JSON.parse(storedUser);
+        const token = userData.token || (userData.data && userData.data.token);
 
         if (token) {
-          // Reconnect socket if we have a token
-          socketClient.connect(token)
+          // Check if we already have a socket connection before reconnecting
+          const socketState = store.getState().socket;
+          if (!socketState.connected) {
+            dispatch(connectSocket(token));
+          }
         }
       } catch (error) {
-        console.error('Error initializing auth:', error)
+        console.error('Error initializing auth:', error);
       }
     }
-  }
-}
+  };
+};
 
 const authSlice = createSlice({
   name: 'auth',
@@ -182,26 +208,24 @@ const authSlice = createSlice({
         state.isAuthError = null
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.isAuthLoading = false
-        state.isAuthSuccess = true
-        state.user = action.payload
+        state.isAuthLoading = false;
+        state.isAuthSuccess = true;
+        state.user = action.payload;
 
         // Properly extract token from either location in the response
         const token =
           action.payload.token ||
-          (action.payload.data && action.payload.data.token)
-        state.token = token
-        state.isAuthError = null
+          (action.payload.data && action.payload.data.token);
+        state.token = token;
+        state.isAuthError = null;
 
-        // Debug log to check payload structure
-        console.log('Login response:', action.payload)
-
-        // Initialize socket connection with token
+        // Initialize socket connection with token if not already connected
         if (token) {
-          console.log('Connecting socket with token:', token)
-          socketClient.connect(token)
+          console.log('Connecting socket with token from login success');
+          // Let the socketService handle this instead of direct call
+          // socketClient.connect(token); - Remove this
         } else {
-          console.error('No token available for socket connection')
+          console.error('No token available for socket connection');
         }
 
         toast.success(
@@ -209,7 +233,7 @@ const authSlice = createSlice({
             action.payload.userName ||
             (action.payload.data && action.payload.data.userName)
           }`
-        )
+        );
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isAuthLoading = false
@@ -272,7 +296,7 @@ const authSlice = createSlice({
         toast.error(`Password reset failed: ${action.payload}`)
       })
       .addCase(logoutUser.fulfilled, (state) => {
-        socketClient.disconnect()
+        disconnectSocket()
         state.user = null
         state.isAuthSuccess = false
         state.isAuthError = null
@@ -280,7 +304,7 @@ const authSlice = createSlice({
         state.isAuthLoading = false
         toast.success('Logged out successfully!')
         sessionStorage.clear()
-        window.location.href = '/'
+        window.location.href = '/login'
       })
   },
 })
