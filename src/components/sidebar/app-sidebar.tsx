@@ -6,6 +6,7 @@ import {
   CalendarHeart,
   HeartHandshake,
 } from 'lucide-react'
+import { Link } from 'react-router'
 
 import { NavMain } from '@/components/sidebar/nav-main'
 import { NavProjects } from '@/components/sidebar/nav-projects'
@@ -67,15 +68,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
-              <a href='#'>
+              <Link to='/dashboard'>
                 <div className='flex aspect-square size-7 items-center justify-center rounded-lg'>
-                  <img src='/favBlur.svg' alt='Logo' />
+                  <img src='/favicon.svg' alt='Logo' />
                 </div>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
                   <span className='truncate font-medium'>Bitewise Inc.</span>
                   <span className='truncate text-xs'>Track your journey</span>
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -86,7 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className='mt-auto' />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

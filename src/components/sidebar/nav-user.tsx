@@ -64,7 +64,7 @@ export function NavUser() {
               />
             ) : (
               <Avatar>
-                <AvatarImage src='/favBlur.svg' alt={userData.name} />
+                <AvatarImage src='/favicon.svg' alt={userData.name} />
                 <AvatarFallback>
                   <User className='h-4 w-4' />
                 </AvatarFallback>
@@ -90,7 +90,7 @@ export function NavUser() {
                 />
               ) : (
                 <Avatar className='h-full w-full'>
-                  <AvatarImage src='/favBlur.svg' alt={userData.name} />
+                  <AvatarImage src='/favicon.svg' alt={userData.name} />
                   <AvatarFallback>
                     {userData.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>

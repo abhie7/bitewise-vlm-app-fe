@@ -1,8 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router";
 
 export function NotFoundPage() {
+  const navigate = useNavigate();
+
   return (
     <section className="bg-white font-serif min-h-screen flex items-center justify-center">
       <div className="container mx-auto">
@@ -27,7 +30,7 @@ export function NotFoundPage() {
 
                 <Button
                 variant="default"
-                onClick={() => (window.location.href = "/dashboard")}
+                onClick={() => navigate("/dashboard")}
                 className="my-5 bg-primary hover:bg-primary/80 text-white font-semibold py-2 px-4 rounded"
                 >
                 Go to Home

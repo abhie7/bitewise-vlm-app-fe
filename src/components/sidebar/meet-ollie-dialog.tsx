@@ -26,13 +26,13 @@ const MeetOllieDialog = () => {
       <Credenza open={dialogOpen} onOpenChange={setDialogOpen}>
         <CredenzaContent className='p-4 sm:max-w-[600px]'>
           <CredenzaHeader>
-            <CredenzaTitle>Meet Ollie</CredenzaTitle>
+            <CredenzaTitle>Ollie's Story</CredenzaTitle>
             <CredenzaDescription>
-              Learn about Ollie, your nutrition analysis assistant
+              The tale of your orange llama nutrition companion
             </CredenzaDescription>
           </CredenzaHeader>
           <CredenzaBody className='flex flex-col items-center justify-center'>
-            <div className='w-full h-[350px] md:h-[450px] overflow-hidden rounded-lg'>
+            <div className='w-full h-auto overflow-hidden'>
               <MeetOllieCarousel />
             </div>
           </CredenzaBody>

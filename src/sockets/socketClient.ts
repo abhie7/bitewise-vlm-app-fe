@@ -6,10 +6,6 @@ export const socketEvents = {
   connect: 'connect',
   disconnect: 'disconnect',
   error: 'error',
-  nutritionAnalysisStart: 'nutrition-analysis-start',
-  nutritionAnalysisProgress: 'nutrition-analysis-progress',
-  nutritionAnalysisComplete: 'nutrition-analysis-complete',
-  nutritionAnalysisError: 'nutrition-analysis-error',
 }
 
 export type ProgressUpdate = {
@@ -34,35 +30,8 @@ class SocketClient {
   private API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private TOKEN_STORAGE_KEY = 'socket_auth_token'
-  private SOCKET_ID_KEY = 'socket_id'; // Add this to store socket ID
+  private SOCKET_ID_KEY = 'socket_id';
 
-  private constructor() {
-    // Try to auto-connect when instance is created (for page refresh)
-    this.autoConnect()
-
-    // Handle page visibility changes to reconnect when tab becomes visible
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && !this.isConnected()) {
-          this.autoConnect()
-        }
-      })
-    }
-  }
-
-  private autoConnect(): void {
-    // First check if we're already connected anywhere in the app
-    if (this.socket && this.socket.connected) {
-      console.log('Socket already connected, skipping auto-connect')
-      return
-    }
-
-    const token = localStorage.getItem(this.TOKEN_STORAGE_KEY)
-    if (token) {
-      console.log('Auto-connecting socket with stored token')
-      this.connect(token)
-    }
-  }
 
   public static getInstance(): SocketClient {
     if (!SocketClient.instance) {
@@ -72,16 +41,13 @@ class SocketClient {
   }
 
   public connect(token: string): void {
-    // Store token for reconnection
     localStorage.setItem(this.TOKEN_STORAGE_KEY, token);
 
-    // Check if we already have a connection
     if (this.socket && this.socket.connected) {
       console.log('Socket already connected with ID:', this.socket.id);
       return;
     }
 
-    // Cancel any pending reconnect
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
@@ -89,27 +55,22 @@ class SocketClient {
 
     console.log('Initializing socket connection to:', this.API_URL);
 
-    // Disconnect existing socket if any
     if (this.socket) {
       this.socket.disconnect();
     }
 
-    // Initialize socket with auth token and increased timeout values
     this.socket = io(this.API_URL, {
+      transports: ['websocket', 'polling'],
       auth: { token },
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
-      timeout: 20000,
       pingTimeout: 60000,
       pingInterval: 25000,
-      transports: ['websocket', 'polling'],
     });
 
-    // Setup base event listeners
     this.socket.on(socketEvents.connect, () => {
       console.log('Socket connected successfully with ID:', this.socket?.id);
-      // Store socket ID in localStorage
       if (this.socket?.id) {
         localStorage.setItem(this.SOCKET_ID_KEY, this.socket.id);
       }
@@ -208,7 +169,6 @@ class SocketClient {
   }
 
   public disconnect(): void {
-    // Clear stored token
     localStorage.removeItem(this.TOKEN_STORAGE_KEY)
 
     if (this.reconnectTimer) {
@@ -245,28 +205,10 @@ class SocketClient {
     this.socket.off(event)
   }
 
-  // Nutrition analysis specific methods
-  public startNutritionAnalysis(imageUrl: string): void {
-    this.emit(socketEvents.nutritionAnalysisStart, { imageUrl })
-  }
-
-  public onNutritionProgress(callback: (data: ProgressUpdate) => void): void {
-    this.on<ProgressUpdate>(socketEvents.nutritionAnalysisProgress, callback)
-  }
-
-  public onNutritionComplete(callback: (data: NutritionResult) => void): void {
-    this.on<NutritionResult>(socketEvents.nutritionAnalysisComplete, callback)
-  }
-
-  public onNutritionError(callback: (data: { message: string }) => void): void {
-    this.on<{ message: string }>(socketEvents.nutritionAnalysisError, callback)
-  }
-
   public isConnected(): boolean {
     return !!this.socket && this.socket.connected
   }
 
-  // Getter for connection status that can be used in the UI
   public getConnectionStatus(): {
     connected: boolean
     socketId: string | null
@@ -278,5 +220,4 @@ class SocketClient {
   }
 }
 
-// Export a singleton instance
 export default SocketClient.getInstance()

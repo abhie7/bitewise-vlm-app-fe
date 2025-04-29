@@ -1,5 +1,6 @@
 import React from 'react'
 import { Bell, Sparkles, WandSparkles, Loader2, Ban } from 'lucide-react'
+import { Link } from 'react-router'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,7 +20,6 @@ import {
 import { Button } from '@/components/ui/button'
 
 import { motion } from 'framer-motion'
-import { ImageUploader } from '@/components/sidebar/image-uploader'
 import {
   Credenza,
   CredenzaBody,
@@ -73,9 +73,11 @@ export function Header({
                     ) : (
                       <BreadcrumbLink
                         className='font-semibold text-xs'
-                        href={item.path}
+                        asChild
                       >
-                        {item.label}
+                        <Link to={item.path}>
+                          {item.label}
+                        </Link>
                       </BreadcrumbLink>
                     )}
                   </BreadcrumbItem>

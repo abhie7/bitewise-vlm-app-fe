@@ -179,7 +179,7 @@ export function RegisterForm({ className, ...props }: RegisterFormProps) {
                     range={200}
                   >
                     <div className='h-12 w-12 flex items-center justify-center '>
-                      <img src='/favBlur.svg' alt='Logo' />
+                      <img src='/favicon.svg' alt='Logo' />
                     </div>
                   </Magnetic>
                 </motion.a>

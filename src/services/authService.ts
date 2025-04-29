@@ -2,10 +2,8 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { toast } from 'sonner'
 import axios from 'axios'
 import socketClient from '../sockets/socketClient'
-import { connectSocket, disconnectSocket } from './socketService';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-// Types
 interface User {
   uuid: string
   email: string
@@ -54,6 +52,7 @@ export const loginUser = createAsyncThunk<
       password,
     })
     const userData = response.data
+    console.log('Login response:', userData)
     sessionStorage.setItem('user', JSON.stringify(userData))
     return userData
   } catch (error: any) {
@@ -96,15 +95,14 @@ export const createUser = createAsyncThunk<
         email,
         password,
         userName: userName,
-        avatar: avatar
+        avatar: avatar,
       })
 
       const userData = response.data
 
-      // Enhance user data with the avatar information for client-side use
       const enhancedUserData = {
         ...userData,
-        avatar: avatar
+        avatar: avatar,
       }
 
       sessionStorage.setItem('user', JSON.stringify(enhancedUserData))
@@ -141,40 +139,25 @@ export const resetPassword = createAsyncThunk<
   }
 })
 
-export const logoutUser = createAsyncThunk<null, void, { rejectValue: string }>(
-  'auth/logout',
-  async (_, { rejectWithValue }) => {
-    try {
-      sessionStorage.removeItem('user')
-      return null
-    } catch (error: any) {
-      toast.error('Logout failed')
-      return rejectWithValue(error.message)
-    }
-  }
-)
-
 export const initializeAuth = () => {
   return (dispatch: any) => {
-    const storedUser = sessionStorage.getItem('user');
+    const storedUser = sessionStorage.getItem('user')
     if (storedUser) {
       try {
-        const userData = JSON.parse(storedUser);
-        const token = userData.token || (userData.data && userData.data.token);
+        const userData = JSON.parse(storedUser)
+        const token = userData.token || (userData.data && userData.data.token)
 
         if (token) {
-          // Check if we already have a socket connection before reconnecting
-          const socketState = store.getState().socket;
-          if (!socketState.connected) {
-            dispatch(connectSocket(token));
-          }
+          console.log('Connecting socket with token from storage:', token)
+          socketClient.connect(token) // Initialize socket connection with token
+          dispatch(setUser(userData)) // Set user in Redux store
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('Error initializing auth:', error)
       }
     }
-  };
-};
+  }
+}
 
 const authSlice = createSlice({
   name: 'auth',
@@ -188,16 +171,17 @@ const authSlice = createSlice({
         sessionStorage.removeItem('user')
       }
     },
-    resetAuth: (state) => {
-      state.isAuthLoading = false
-      state.isAuthError = null
-      state.isAuthSuccess = false
-    },
-    clearUser: (state) => {
+    logoutUser: (state) => {
+      toast.success('Logged out successfully!')
+      socketClient.disconnect()
       state.user = null
+      state.isAuthSuccess = false
+      state.isAuthError = null
       state.token = null
-      // Force the window location to the login page to ensure proper route change
-      window.location.href = '/'
+      state.isAuthLoading = false
+      sessionStorage.clear()
+      localStorage.clear()
+      // window.location.reload()
     },
   },
   extraReducers: (builder) => {
@@ -208,24 +192,21 @@ const authSlice = createSlice({
         state.isAuthError = null
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        state.isAuthLoading = false;
-        state.isAuthSuccess = true;
-        state.user = action.payload;
+        state.isAuthLoading = false
+        state.isAuthSuccess = true
+        state.user = action.payload
 
-        // Properly extract token from either location in the response
         const token =
           action.payload.token ||
-          (action.payload.data && action.payload.data.token);
-        state.token = token;
-        state.isAuthError = null;
+          (action.payload.data && action.payload.data.token)
+        state.token = token
+        state.isAuthError = null
 
-        // Initialize socket connection with token if not already connected
         if (token) {
-          console.log('Connecting socket with token from login success');
-          // Let the socketService handle this instead of direct call
-          // socketClient.connect(token); - Remove this
+          console.log('Connecting socket with token from login success')
+          socketClient.connect(token);
         } else {
-          console.error('No token available for socket connection');
+          console.error('No token available for socket connection')
         }
 
         toast.success(
@@ -233,7 +214,7 @@ const authSlice = createSlice({
             action.payload.userName ||
             (action.payload.data && action.payload.data.userName)
           }`
-        );
+        )
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isAuthLoading = false
@@ -295,19 +276,19 @@ const authSlice = createSlice({
         state.isAuthError = action.payload || 'Password reset failed'
         toast.error(`Password reset failed: ${action.payload}`)
       })
-      .addCase(logoutUser.fulfilled, (state) => {
-        disconnectSocket()
-        state.user = null
-        state.isAuthSuccess = false
-        state.isAuthError = null
-        state.token = null
-        state.isAuthLoading = false
-        toast.success('Logged out successfully!')
-        sessionStorage.clear()
-        window.location.href = '/login'
-      })
+      // .addCase(logoutUser.fulfilled, (state) => {
+      //   socketClient.disconnect()
+      //   state.user = null
+      //   state.isAuthSuccess = false
+      //   state.isAuthError = null
+      //   state.token = null
+      //   state.isAuthLoading = false
+      //   toast.success('Logged out successfully!')
+      //   sessionStorage.clear()
+      //   window.location.href = '/login'
+      // })
   },
 })
 
-export const { setUser } = authSlice.actions
+export const { setUser, logoutUser } = authSlice.actions
 export default authSlice.reducer
