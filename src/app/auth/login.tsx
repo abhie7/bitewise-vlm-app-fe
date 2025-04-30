@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from '@/store'
 import { useNavigate } from 'react-router'
 import { Magnetic } from '@/components/ui/magnetic'
+import { PageTitle } from '@/components/ui/page-title'
 
 export function LoginPage() {
   const [mounted, setMounted] = useState(false)
@@ -26,7 +27,8 @@ export function LoginPage() {
 
   return (
     <div className='min-h-screen w-full bg-gradient-to-br from-slate-900 to-slate-800'>
-      <AnimatePresence mode="wait">
+      <PageTitle title='Login' />
+      <AnimatePresence mode='wait'>
         <div className='grid min-h-screen lg:grid-cols-2'>
           {/* Left Side: Login Form */}
           <motion.div

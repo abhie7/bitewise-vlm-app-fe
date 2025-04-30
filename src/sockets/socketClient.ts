@@ -6,6 +6,11 @@ export const socketEvents = {
   connect: 'connect',
   disconnect: 'disconnect',
   error: 'error',
+  nutritionAnalysisStart: 'nutrition-analysis-start',
+  nutritionAnalysisProgress: 'nutrition-analysis-progress',
+  nutritionAnalysisComplete: 'nutrition-analysis-complete',
+  nutritionAnalysisError: 'nutrition-analysis-error',
+  analyzeImage: 'analyze_image', // Client-to-server event
 }
 
 export type ProgressUpdate = {
@@ -24,6 +29,14 @@ export type NutritionResult = {
   additionalInfo: string
 }
 
+export type AnalysisRequest = {
+  imageUrl: string
+  imageId: string
+  fileName: string
+  fileType: string
+  fileSize: number
+}
+
 class SocketClient {
   private static instance: SocketClient
   private socket: Socket | null = null
@@ -32,6 +45,18 @@ class SocketClient {
   private TOKEN_STORAGE_KEY = 'socket_auth_token'
   private SOCKET_ID_KEY = 'socket_id';
 
+  // Analysis event callback storage
+  private analysisStartHandlers: Array<() => void> = [];
+  private analysisProgressHandlers: Array<(data: ProgressUpdate) => void> = [];
+  private analysisCompleteHandlers: Array<(data: NutritionResult) => void> = [];
+  private analysisErrorHandlers: Array<(error: string) => void> = [];
+
+  // Analysis progress tracking
+  private currentAnalysis: {
+    imageId?: string;
+    progress: number;
+    status: 'idle' | 'analyzing' | 'complete' | 'error';
+  } = { progress: 0, status: 'idle' };
 
   public static getInstance(): SocketClient {
     if (!SocketClient.instance) {
@@ -128,6 +153,46 @@ class SocketClient {
       toast.error('Failed to reconnect to server')
       this.scheduleReconnect(true)
     })
+
+    // Set up nutrition analysis event handlers
+    this.setupAnalysisEventHandlers();
+  }
+
+  private setupAnalysisEventHandlers(): void {
+    if (!this.socket) return;
+
+    // Remove any existing listeners to avoid duplicates
+    this.socket.off(socketEvents.nutritionAnalysisStart);
+    this.socket.off(socketEvents.nutritionAnalysisProgress);
+    this.socket.off(socketEvents.nutritionAnalysisComplete);
+    this.socket.off(socketEvents.nutritionAnalysisError);
+
+    // Set up listeners for nutrition analysis events
+    this.socket.on(socketEvents.nutritionAnalysisStart, () => {
+      console.log('Nutrition analysis started');
+      this.currentAnalysis.status = 'analyzing';
+      this.currentAnalysis.progress = 0;
+      this.analysisStartHandlers.forEach(handler => handler());
+    });
+
+    this.socket.on(socketEvents.nutritionAnalysisProgress, (data: ProgressUpdate) => {
+      console.log('Nutrition analysis progress:', data);
+      this.currentAnalysis.progress = data.progress;
+      this.analysisProgressHandlers.forEach(handler => handler(data));
+    });
+
+    this.socket.on(socketEvents.nutritionAnalysisComplete, (data: NutritionResult) => {
+      console.log('Nutrition analysis complete:', data);
+      this.currentAnalysis.status = 'complete';
+      this.currentAnalysis.progress = 100;
+      this.analysisCompleteHandlers.forEach(handler => handler(data));
+    });
+
+    this.socket.on(socketEvents.nutritionAnalysisError, (error: { message: string }) => {
+      console.error('Nutrition analysis error:', error);
+      this.currentAnalysis.status = 'error';
+      this.analysisErrorHandlers.forEach(handler => handler(error.message));
+    });
   }
 
   private formatDisconnectReason(reason: string): string {
@@ -217,6 +282,75 @@ class SocketClient {
       connected: this.isConnected(),
       socketId: this.socket?.id || null,
     }
+  }
+
+  // Analysis request method
+  public requestImageAnalysis(request: AnalysisRequest): void {
+    if (!this.isConnected()) {
+      toast.error('Socket not connected. Please try again.');
+      return;
+    }
+
+    // Reset analysis state when starting a new analysis
+    this.currentAnalysis = {
+      imageId: request.imageId,
+      progress: 0,
+      status: 'analyzing'
+    };
+
+    // Notify any listeners that we're starting an analysis
+    this.analysisStartHandlers.forEach(handler => handler());
+
+    // Send the analysis request to the server
+    this.emit(socketEvents.analyzeImage, request);
+    console.log('Image analysis request sent:', request.imageId);
+  }
+
+  // Analysis event subscription methods
+  public onAnalysisStart(handler: () => void): void {
+    this.analysisStartHandlers.push(handler);
+  }
+
+  public onAnalysisProgress(handler: (data: ProgressUpdate) => void): void {
+    this.analysisProgressHandlers.push(handler);
+  }
+
+  public onAnalysisComplete(handler: (data: NutritionResult) => void): void {
+    this.analysisCompleteHandlers.push(handler);
+  }
+
+  public onAnalysisError(handler: (error: string) => void): void {
+    this.analysisErrorHandlers.push(handler);
+  }
+
+  // Analysis event unsubscription methods
+  public offAnalysisStart(handler: () => void): void {
+    this.analysisStartHandlers = this.analysisStartHandlers.filter(h => h !== handler);
+  }
+
+  public offAnalysisProgress(handler: (data: ProgressUpdate) => void): void {
+    this.analysisProgressHandlers = this.analysisProgressHandlers.filter(h => h !== handler);
+  }
+
+  public offAnalysisComplete(handler: (data: NutritionResult) => void): void {
+    this.analysisCompleteHandlers = this.analysisCompleteHandlers.filter(h => h !== handler);
+  }
+
+  public offAnalysisError(handler: (error: string) => void): void {
+    this.analysisErrorHandlers = this.analysisErrorHandlers.filter(h => h !== handler);
+  }
+
+  // Get current analysis status
+  public getAnalysisStatus() {
+    return { ...this.currentAnalysis };
+  }
+
+  // Reset analysis state
+  public resetAnalysis() {
+    this.currentAnalysis = {
+      progress: 0,
+      status: 'idle'
+    };
   }
 }
 

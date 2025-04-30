@@ -1,19 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
+// Import existing reducers
 import authReducer from './authService'
-import { useDispatch } from 'react-redux';
+// Import our new reducer
+import nutritionReducer from './nutritionSlice'
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    nutrition: nutritionReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['socket/connect/fulfilled'],
-        ignoredActionPaths: ['payload.socket', 'meta.arg'],
-        ignoredPaths: ['socket.socket', 'socket.events'],
-      },
-    }),
 })
 
 export default store

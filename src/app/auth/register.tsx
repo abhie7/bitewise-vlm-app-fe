@@ -4,6 +4,7 @@ import { RegisterForm } from '@/components/auth/register-form'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/store'
 import { useNavigate } from 'react-router'
+import { PageTitle } from '@/components/ui/page-title'
 
 export function RegisterPage() {
   const [mounted, setMounted] = useState(false)
@@ -23,8 +24,8 @@ export function RegisterPage() {
 
   return (
     <div className='min-h-screen w-full bg-gradient-to-br from-slate-900 to-slate-800'>
+      <PageTitle title='Register' />
       <div className='grid min-h-screen lg:grid-cols-2'>
-
         {/* Left Side: Hero Image */}
         <div className='relative hidden overflow-hidden lg:block'>
           <motion.div
@@ -52,11 +53,11 @@ export function RegisterPage() {
                 Start your nutrition journey
               </h2>
               <p className='text-lg text-white/90'>
-                Create an account to track your meals and gain valuable insights about your diet.
+                Create an account to track your meals and gain valuable insights
+                about your diet.
               </p>
             </motion.div>
           </motion.div>
-
         </div>
 
         {/* Right Side: Register Form */}
@@ -81,7 +82,6 @@ export function RegisterPage() {
             <p>© 2025 Bitewise Inc. All rights reserved.</p>
           </footer>
         </motion.div>
-
       </div>
     </div>
   )

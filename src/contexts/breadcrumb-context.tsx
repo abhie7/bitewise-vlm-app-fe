@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react'
-import { BreadcrumbItem } from '@/components/layout/header'
+import { BreadcrumbItem } from '@/components/header/header'
 
 interface BreadcrumbContextType {
   breadcrumbs: BreadcrumbItem[]

@@ -30,8 +30,6 @@ export function NavUser() {
   const dispatch = useAppDispatch()
   const { user } = useSelector((state: RootState) => state.auth)
 
-  console.log('user', user)
-
   if (!user) return null
 
   const userData = {
@@ -39,7 +37,6 @@ export function NavUser() {
     email: user.data.email,
     avatar: user.data.avatar || null,
   }
-  console.log('userData', userData)
 
   const handleLogout = () => {
     dispatch(logoutUser())
@@ -51,10 +48,10 @@ export function NavUser() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-      <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer transition-all"
-            >
+        <SidebarMenuButton
+          size='lg'
+          className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer transition-all'
+        >
           <div className='relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full'>
             {hasAvatarData ? (
               <DynamicAvatar
@@ -73,7 +70,9 @@ export function NavUser() {
           </div>
           <div className='grid flex-1 text-left leading-none'>
             <span className='truncate font-medium'>{userData.name}</span>
-            <span className='truncate text-xs text-muted-foreground'>{userData.email}</span>
+            <span className='truncate text-xs text-muted-foreground'>
+              {userData.email}
+            </span>
           </div>
           <ChevronsUpDown className='ml-auto h-4 w-4 shrink-0 opacity-50' />
         </SidebarMenuButton>
@@ -98,8 +97,12 @@ export function NavUser() {
               )}
             </div>
             <div className='space-y-1'>
-              <p className='text-sm font-medium leading-none'>{userData.name}</p>
-              <p className='text-xs leading-none text-muted-foreground'>{userData.email}</p>
+              <p className='text-sm font-medium leading-none'>
+                {userData.name}
+              </p>
+              <p className='text-xs leading-none text-muted-foreground'>
+                {userData.email}
+              </p>
             </div>
           </div>
         </DropdownMenuLabel>
