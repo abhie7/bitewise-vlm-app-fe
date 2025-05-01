@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { toast } from 'sonner'
 import axios from 'axios'
 import socketClient from '../sockets/socketClient'
+import { fetchUserNutrition } from './nutritionService'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 interface User {
@@ -208,6 +209,8 @@ const authSlice = createSlice({
         } else {
           console.error('No token available for socket connection')
         }
+
+        fetchUserNutrition()
 
         toast.success(
           `Welcome ${

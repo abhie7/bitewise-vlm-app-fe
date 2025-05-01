@@ -27,6 +27,7 @@ import {
   Beef,
   Share2,
   Check,
+  Croissant,
 } from 'lucide-react'
 // import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
@@ -285,7 +286,7 @@ ${result.additionalInfo ? '\nAdditional Info:\n' + result.additionalInfo : ''}
                 <Card>
                   <CardContent className='p-4 flex flex-col items-center'>
                     <div className='flex items-center mb-2'>
-                      <Egg className='w-8 h-8 text-blue-500 mr-3' />
+                      <Beef className='w-8 h-8 text-blue-500 mr-3' />
                       <div>
                         <h3 className='text-sm font-medium text-muted-foreground'>
                           Protein
@@ -321,7 +322,7 @@ ${result.additionalInfo ? '\nAdditional Info:\n' + result.additionalInfo : ''}
                 <Card>
                   <CardContent className='p-4 flex flex-col items-center'>
                     <div className='flex items-center mb-2'>
-                      <Beef className='w-8 h-8 text-red-500 mr-3' />
+                      <Croissant className='w-8 h-8 text-red-500 mr-3' />
                       <div>
                         <h3 className='text-sm font-medium text-muted-foreground'>
                           Fat

@@ -7,9 +7,11 @@ import publicRoutes from './routes/publicRoutes'
 import { ThemeProvider } from '@/components/theme-provider'
 import { RootState } from './types'
 import socketClient from './sockets/socketClient'
+import { fetchUserNutrition } from './services/nutritionService'
+import { useAppDispatch } from './services/store'
 
 const App = () => {
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, isAuthSuccess } = useSelector((state: RootState) => state.auth)
 
   // Check if the user is logged in and if the socket client is not connected
   // If the user is logged in, try to reconnect the socket client
@@ -22,6 +24,16 @@ const App = () => {
       }
     }
   }, [user])
+
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    if (isAuthSuccess && user) {
+      const token = localStorage.getItem('socket_auth_token')
+      console.log('Fetching user nutrition data...')
+      dispatch(fetchUserNutrition(token))
+    }
+  }, [isAuthSuccess, user, dispatch])
 
   const enhancedProtectedRoutes = createBrowserRouter([
     ...protectedRoutes,

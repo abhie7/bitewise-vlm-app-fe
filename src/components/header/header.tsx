@@ -1,5 +1,12 @@
 import React from 'react'
-import { Bell, Sparkles, WandSparkles, Loader2, Ban } from 'lucide-react'
+import {
+  Bell,
+  Sparkles,
+  WandSparkles,
+  Loader2,
+  Ban,
+  RefreshCcw,
+} from 'lucide-react'
 import { Link } from 'react-router'
 import {
   Breadcrumb,
@@ -35,7 +42,9 @@ import FileUpload from '../ui/file-upload'
 import minioService from '@/services/minioService'
 import socketClient from '@/sockets/socketClient'
 import { useSelector } from 'react-redux'
-import { NutritionResultModal } from '../nutrition/NutritionResultModal'
+import { NutritionResultModal } from '../nutrition/nutrition-result-modal'
+import { useAppDispatch } from '@/services/store'
+import { fetchUserNutrition } from '@/services/nutritionService'
 
 export type BreadcrumbItem = {
   label: string
@@ -57,7 +66,7 @@ export function Header({
   const breadcrumbs = customBreadcrumbs || []
 
   return (
-    <header className='w-full flex h-14 shrink-0 items-center justify-between'>
+    <header className='app-header'>
       <div className='flex items-center gap-2 px-4'>
         <SidebarTrigger className='cursor-pointer' />
         <Separator orientation='vertical' className='mr-2 h-4' />
@@ -91,6 +100,7 @@ export function Header({
       <div className='flex items-center gap-2 px-4'>
         {actions}
         <UploadImageModal />
+        <RefetchDataButton />
         <NotificationButton />
       </div>
     </header>
@@ -343,6 +353,31 @@ function UploadImageModal() {
         result={nutritionResult}
       />
     </div>
+  )
+}
+
+function RefetchDataButton() {
+  const dispatch = useAppDispatch()
+  const loading = useSelector((state: any) => state.nutrition.loading)
+  const handleRefetch = () => {
+    const token = localStorage.getItem('socket_auth_token')
+    dispatch(fetchUserNutrition(token))
+  }
+
+  return (
+    <Button
+      variant='ghost'
+      size='icon'
+      onClick={handleRefetch}
+      className='cursor-pointer'
+      disabled={loading}
+    >
+      {loading ? (
+        <Loader2 className='animate-spin h-5 w-5' />
+      ) : (
+        <RefreshCcw className='h-5 w-5' />
+      )}
+    </Button>
   )
 }
 

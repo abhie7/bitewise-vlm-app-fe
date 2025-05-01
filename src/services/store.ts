@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux'
 // Import existing reducers
 import authReducer from './authService'
 // Import our new reducer
-import nutritionReducer from './nutritionSlice'
+import nutritionReducer from './nutritionService'
 
 export const store = configureStore({
   reducer: {

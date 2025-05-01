@@ -3,6 +3,7 @@ import ProtectedLayout from "@/layouts/protected-layout";
 import Dashboard from "@/app/dashboard/page";
 import AnalyticsPage from "@/app/dashboard/analytics/page";
 import { Navigate } from "react-router";
+import CalendarPage from "@/app/calendar/page";
 // import { PageNotFoundPage } from "@/app/404-not-found/page";
 
 // Define protected routes with proper typing
@@ -22,6 +23,10 @@ const protectedRoutes: RouteObject[] = [
       {
         path: "/analytics",
         element: <AnalyticsPage />,
+      },
+      {
+        path: "/calendar",
+        element: <CalendarPage />,
       },
       // Add other protected routes here
       // {

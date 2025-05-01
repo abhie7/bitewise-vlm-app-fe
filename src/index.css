@@ -234,3 +234,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* App layout utility classes */
+.app-container {
+  @apply flex flex-col h-screen overflow-hidden;
+}
+
+.app-header {
+  @apply w-full flex h-14 shrink-0 items-center justify-between z-10;
+}
+
+.app-content {
+  @apply flex-1 overflow-auto relative;
+}
+
+.app-main {
+  @apply flex flex-1 flex-col;
+}
