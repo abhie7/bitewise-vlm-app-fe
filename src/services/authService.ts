@@ -4,7 +4,7 @@ import axios from 'axios'
 import socketClient from '../sockets/socketClient'
 import { fetchUserNutrition } from './nutritionService'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_API_URL
 interface User {
   uuid: string
   email: string
@@ -20,7 +20,7 @@ interface AuthState {
 }
 
 const getUserFromStorage = (): User | null => {
-  const storedUser = sessionStorage.getItem('user')
+  const storedUser = localStorage.getItem('user')
   if (!storedUser) return null
   try {
     return JSON.parse(storedUser) as User
@@ -54,7 +54,7 @@ export const loginUser = createAsyncThunk<
     })
     const userData = response.data
     console.log('Login response:', userData)
-    sessionStorage.setItem('user', JSON.stringify(userData))
+    localStorage.setItem('user', JSON.stringify(userData))
     return userData
   } catch (error: any) {
     console.error('Login error:', error)
@@ -106,7 +106,7 @@ export const createUser = createAsyncThunk<
         avatar: avatar,
       }
 
-      sessionStorage.setItem('user', JSON.stringify(enhancedUserData))
+      localStorage.setItem('user', JSON.stringify(enhancedUserData))
       return enhancedUserData
     } catch (error: any) {
       console.error('Registration error:', error)
@@ -142,7 +142,7 @@ export const resetPassword = createAsyncThunk<
 
 export const initializeAuth = () => {
   return (dispatch: any) => {
-    const storedUser = sessionStorage.getItem('user')
+    const storedUser = localStorage.getItem('user')
     if (storedUser) {
       try {
         const userData = JSON.parse(storedUser)
@@ -167,9 +167,9 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<User | null>) => {
       state.user = action.payload
       if (action.payload) {
-        sessionStorage.setItem('user', JSON.stringify(action.payload))
+        localStorage.setItem('user', JSON.stringify(action.payload))
       } else {
-        sessionStorage.removeItem('user')
+        localStorage.removeItem('user')
       }
     },
     logoutUser: (state) => {
@@ -180,7 +180,7 @@ const authSlice = createSlice({
       state.isAuthError = null
       state.token = null
       state.isAuthLoading = false
-      sessionStorage.clear()
+      localStorage.clear()
       localStorage.clear()
       // window.location.reload()
     },
@@ -197,18 +197,18 @@ const authSlice = createSlice({
         state.isAuthSuccess = true
         state.user = action.payload
 
-        const token =
-          action.payload.token ||
-          (action.payload.data && action.payload.data.token)
+        const token = action.payload.data.token
         state.token = token
         state.isAuthError = null
 
         if (token) {
-          console.log('Connecting socket with token from login success')
-          socketClient.connect(token);
+          console.log('Connecting socket with token from login success ', token)
+          socketClient.connect(token)
         } else {
           console.error('No token available for socket connection')
         }
+
+        localStorage.setItem('token', token)
 
         fetchUserNutrition()
 
@@ -279,17 +279,17 @@ const authSlice = createSlice({
         state.isAuthError = action.payload || 'Password reset failed'
         toast.error(`Password reset failed: ${action.payload}`)
       })
-      // .addCase(logoutUser.fulfilled, (state) => {
-      //   socketClient.disconnect()
-      //   state.user = null
-      //   state.isAuthSuccess = false
-      //   state.isAuthError = null
-      //   state.token = null
-      //   state.isAuthLoading = false
-      //   toast.success('Logged out successfully!')
-      //   sessionStorage.clear()
-      //   window.location.href = '/login'
-      // })
+    // .addCase(logoutUser.fulfilled, (state) => {
+    //   socketClient.disconnect()
+    //   state.user = null
+    //   state.isAuthSuccess = false
+    //   state.isAuthError = null
+    //   state.token = null
+    //   state.isAuthLoading = false
+    //   toast.success('Logged out successfully!')
+    //   localStorage.clear()
+    //   window.location.href = '/login'
+    // })
   },
 })
 

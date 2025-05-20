@@ -14,8 +14,8 @@
       "@/*": ["./src/*"]
     },
     "esModuleInterop": true,
-    "moduleResolution": "es2020",
-    "module": "es2020"
+    "moduleResolution": "node16",
+    "module": "node16"
 
   }
 }

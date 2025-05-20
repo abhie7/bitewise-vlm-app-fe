@@ -2,7 +2,8 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 import { toast } from 'sonner'
 
-// Define the interfaces for nutrient types
+const API_URL = import.meta.env.VITE_API_URL
+
 export interface MacroNutrient {
   amount: number
   unit: string
@@ -86,49 +87,86 @@ export interface NutritionState {
     totalSugar: number
     totalFiber: number
   }
-  weeklyData: any[]
-  monthlyData: any[]
+  weeklyData: Array<{
+    date: string
+    calories: number
+    carbs: number
+    protein: number
+    fat: number
+  }>
+  monthlyData: Array<{
+    month: string
+    calories: number
+    carbs: number
+    protein: number
+    fat: number
+  }>
 }
 
 const initialState: NutritionState = {
   items: [],
   loading: false,
   error: null,
-  }
+  dailyStats: {
+    totalCalories: 0,
+    totalCarbs: 0,
+    totalProtein: 0,
+    totalFat: 0,
+    totalSugar: 0,
+    totalFiber: 0
+  },
+  weeklyData: [],
+  monthlyData: []
+}
 
-// Get nutrition data for a user
 export const fetchUserNutrition = createAsyncThunk(
   'nutrition/fetchUserNutrition',
   async (token: string, { rejectWithValue }) => {
     try {
-      // Use absolute URL instead of relative path to avoid Vite dev server interference
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/nutrition/`,
-        {
+      let allItems: NutritionItem[] = []
+      let page = 1
+      const limit = 50
+
+      while (true) {
+        const response = await axios.get(`${API_URL}/nutrition`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
             Accept: 'application/json',
             'Content-Type': 'application/json',
           },
+          params: {
+            page,
+            limit,
+          },
+        })
+
+        if (
+          response.data &&
+          response.data.success &&
+          response.data.data &&
+          Array.isArray(response.data.data.items)
+        ) {
+          const { items, pagination } = response.data.data
+
+          allItems = [...allItems, ...items]
+
+          // Check if we have fetched all pages
+          if (page >= pagination.totalPages) {
+            break
+          }
+
+          page++
+        } else {
+          console.error('Unexpected response format:', response.data)
+          return rejectWithValue('Unexpected response format from the server')
         }
-      )
-
-      console.log('Raw API response:', response.data)
-
-      // Check if response has the expected data structure
-      if (response.data && response.data.success && response.data.data) {
-        toast.success(`${response.data.message}`)
-        console.log('Nutrition data:', response.data.data)
-
-        // Return the items array from the paginated response
-        return response.data.data.items || []
-      } else {
-        console.error('Unexpected response format:', response.data)
-        return rejectWithValue('Unexpected response format from the server')
       }
+
+      toast.success(`Fetched ${allItems.length} nutrition entries`)
+      return allItems
     } catch (error: any) {
       console.error('Error fetching nutrition data:', error)
-      // Log more detailed error information
+
       if (error.response) {
         console.error('Response data:', error.response.data)
         console.error('Response status:', error.response.status)
@@ -140,25 +178,17 @@ export const fetchUserNutrition = createAsyncThunk(
   }
 )
 
-// Add a new nutrition entry
 export const addNutritionEntry = createAsyncThunk(
   'nutrition/addNutritionEntry',
   async (nutritionData: Partial<NutritionItem>, { rejectWithValue }) => {
     try {
-      // Use absolute URL instead of relative path
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || ''}/api/nutrition`,
-        nutritionData,
-        {
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem(
-              'socket_auth_token'
-            )}`,
-          },
-        }
-      )
+      const response = await axios.post(`${API_URL}/nutrition`, nutritionData, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('socket_auth_token')}`,
+        },
+      })
 
       console.log('Raw API response:', response)
 
@@ -171,7 +201,7 @@ export const addNutritionEntry = createAsyncThunk(
       }
     } catch (error: any) {
       console.error('Error adding nutrition entry:', error)
-      // Log more detailed error information
+
       if (error.response) {
         console.error('Response data:', error.response.data)
         console.error('Response status:', error.response.status)
@@ -198,6 +228,68 @@ const nutritionSlice = createSlice({
         (state, action: PayloadAction<NutritionItem[]>) => {
           state.items = action.payload
           state.loading = false
+
+          // Calculate daily stats
+          state.dailyStats = action.payload.reduce(
+            (acc, item) => ({
+              totalCalories: acc.totalCalories + item.calories,
+              totalCarbs: acc.totalCarbs + item.carbs,
+              totalProtein: acc.totalProtein + item.protein,
+              totalFat: acc.totalFat + item.fat,
+              totalSugar: acc.totalSugar + item.sugar,
+              totalFiber: acc.totalFiber + item.fiber,
+            }),
+            {
+              totalCalories: 0,
+              totalCarbs: 0,
+              totalProtein: 0,
+              totalFat: 0,
+              totalSugar: 0,
+              totalFiber: 0,
+            }
+          )
+
+          // Calculate weekly data
+          const last7Days = Array.from({ length: 7 }, (_, i) => {
+            const date = new Date()
+            date.setDate(date.getDate() - i)
+            return date.toLocaleDateString()
+          }).reverse()
+
+          state.weeklyData = last7Days.map(date => {
+            const dayItems = action.payload.filter(
+              item => new Date(item.createdAt).toLocaleDateString() === date
+            )
+            return {
+              date,
+              calories: dayItems.reduce((sum, item) => sum + item.calories, 0),
+              carbs: dayItems.reduce((sum, item) => sum + item.carbs, 0),
+              protein: dayItems.reduce((sum, item) => sum + item.protein, 0),
+              fat: dayItems.reduce((sum, item) => sum + item.fat, 0),
+            }
+          })
+
+          // Calculate monthly data
+          const last6Months = Array.from({ length: 6 }, (_, i) => {
+            const date = new Date()
+            date.setMonth(date.getMonth() - i)
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+          }).reverse()
+
+          state.monthlyData = last6Months.map(month => {
+            const monthItems = action.payload.filter(item => {
+              const itemDate = new Date(item.createdAt)
+              const itemMonth = itemDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+              return itemMonth === month
+            })
+            return {
+              month,
+              calories: monthItems.reduce((sum, item) => sum + item.calories, 0),
+              carbs: monthItems.reduce((sum, item) => sum + item.carbs, 0),
+              protein: monthItems.reduce((sum, item) => sum + item.protein, 0),
+              fat: monthItems.reduce((sum, item) => sum + item.fat, 0),
+            }
+          })
         }
       )
       .addCase(fetchUserNutrition.rejected, (state, action) => {
@@ -207,8 +299,8 @@ const nutritionSlice = createSlice({
       .addCase(
         addNutritionEntry.fulfilled,
         (state, action: PayloadAction<NutritionItem>) => {
-                    state.items.push(action.payload)
-                  }
+          state.items.push(action.payload)
+        }
       )
   },
 })

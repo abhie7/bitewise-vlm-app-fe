@@ -8,7 +8,7 @@ const ProtectedLayout = () => {
       <SidebarProvider>
         <AppSidebar variant="inset" collapsible="icon" />
         <SidebarInset className="pl-0">
-          <div className='flex h-[98vh] w-full bg-background rounded-2xl overflow-hidden'>
+          <div className='flex h-[98vh] w-full bg-background rounded-2xl overflow-y-auto'>
             <Outlet />
           </div>
         </SidebarInset>

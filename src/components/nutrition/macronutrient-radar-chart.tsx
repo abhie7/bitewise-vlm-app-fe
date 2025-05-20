@@ -1,10 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { ChartComponentProps, NutritionItem } from '@/types'
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Legend, Tooltip } from 'recharts'
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+  Tooltip,
+  Legend
+} from 'recharts'
+import type { ChartComponentProps, NutritionItem } from '@/types'
+
+type RadarData = {
+  subject: string
+  fullMark: number
+  [key: string]: number | string
+}
 
 export function MacronutrientRadarChart({ items }: ChartComponentProps) {
-  const [chartData, setChartData] = useState<any[]>([])
+  const [chartData, setChartData] = useState<NutritionItem[]>([])
 
   useEffect(() => {
     if (items && items.length > 0) {
@@ -18,9 +33,30 @@ export function MacronutrientRadarChart({ items }: ChartComponentProps) {
           fat: item.fat,
           sugar: item.sugar,
           fiber: item.fiber,
-          // Add sodium or other key nutrients if available
-          sodium: getValueFromAdditionalInfo(item.additionalInfo, 'Sodium') ||
-                 getNutrientAmount(item, 'sodium')
+          sodium:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Sodium') ||
+            getNutrientAmount(item, 'sodium'),
+          cholesterol:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Cholesterol') ||
+            getNutrientAmount(item, 'cholesterol'),
+          calcium:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Calcium') ||
+            getNutrientAmount(item, 'calcium'),
+          iron:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Iron') ||
+            getNutrientAmount(item, 'iron'),
+          potassium:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Potassium') ||
+            getNutrientAmount(item, 'potassium'),
+          magnesium:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Magnesium') ||
+            getNutrientAmount(item, 'magnesium'),
+          zinc:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Zinc') ||
+            getNutrientAmount(item, 'zinc'),
+          copper:
+            getValueFromAdditionalInfo(item.additionalInfo, 'Copper') ||
+            getNutrientAmount(item, 'copper'),
         }
       })
 
@@ -29,7 +65,10 @@ export function MacronutrientRadarChart({ items }: ChartComponentProps) {
   }, [items])
 
   // Helper to extract sodium or other values from additionalInfo
-  const getValueFromAdditionalInfo = (additionalInfo: string, nutrientName: string): number | null => {
+  const getValueFromAdditionalInfo = (
+    additionalInfo: string,
+    nutrientName: string
+  ): number | null => {
     if (!additionalInfo) return null
 
     const regex = new RegExp(`${nutrientName}:\\s*(\\d+(?:\\.\\d+)?)`, 'i')
@@ -39,11 +78,14 @@ export function MacronutrientRadarChart({ items }: ChartComponentProps) {
   }
 
   // Helper to get nutrient amount from rawAnalysisData
-  const getNutrientAmount = (item: NutritionItem, nutrientKey: string): number => {
+  const getNutrientAmount = (
+    item: NutritionItem,
+    nutrientKey: string
+  ): number => {
     if (!item.rawAnalysisData?.nutrients) return 0
 
     const nutrient = item.rawAnalysisData.nutrients[nutrientKey]
-    return nutrient && typeof nutrient === 'object' ? (nutrient.amount || 0) : 0
+    return nutrient && typeof nutrient === 'object' ? nutrient.amount || 0 : 0
   }
 
   // Create categories for the radar chart
@@ -53,30 +95,40 @@ export function MacronutrientRadarChart({ items }: ChartComponentProps) {
     { name: 'Fat', key: 'fat', fullMark: 40 },
     { name: 'Sugar', key: 'sugar', fullMark: 30 },
     { name: 'Fiber', key: 'fiber', fullMark: 10 },
-    { name: 'Sodium', key: 'sodium', fullMark: 600 }
+    { name: 'Sodium', key: 'sodium', fullMark: 600 },
   ]
 
   // Format data for radar chart
-  const radarData = categories.map(cat => ({
+  const radarData = categories.map((cat) => ({
     subject: cat.name,
     fullMark: cat.fullMark,
     ...chartData.reduce((acc, item, idx) => {
       acc[`item${idx + 1}`] = item[cat.key] || 0
       return acc
-    }, {})
+    }, {}),
   }))
 
   // Create a color array for the radar chart
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff0000', '#0088fe']
+  const COLORS = [
+    '#8884d8',
+    '#82ca9d',
+    '#ffc658',
+    '#ff7300',
+    '#ff0000',
+    '#0088fe',
+  ]
 
   return (
-    <Card className="p-4 h-80">
-      <CardContent className="p-0 h-full">
+    <Card className='p-4 h-80'>
+      <CardContent className='p-0 h-full'>
         {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 10 }}>
+          <ResponsiveContainer width='100%' height='100%'>
+            <RadarChart
+              data={radarData}
+              margin={{ top: 10, right: 30, bottom: 10, left: 10 }}
+            >
               <PolarGrid />
-              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12 }} />
+              <PolarAngleAxis dataKey='subject' tick={{ fontSize: 12 }} />
               <PolarRadiusAxis angle={30} domain={[0, 'auto']} />
 
               {chartData.map((_, idx) => (
@@ -90,12 +142,12 @@ export function MacronutrientRadarChart({ items }: ChartComponentProps) {
                 />
               ))}
 
-              <Legend />
+              {/* <Legend /> */}
               <Tooltip />
             </RadarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="h-full flex items-center justify-center text-muted-foreground">
+          <div className='h-full flex items-center justify-center text-muted-foreground'>
             No data available for radar chart
           </div>
         )}

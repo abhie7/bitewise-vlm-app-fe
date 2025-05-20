@@ -7,12 +7,14 @@ import { useSelector } from 'react-redux'
 import { Card, CardContent } from '@/components/ui/card'
 import { NutrientQualityGauge } from '@/components/nutrition/nutrient-quality-gauge'
 import { DailyCalorieTrend } from '@/components/nutrition/daily-calorie-trend'
+import { PageTitle } from '@/components/ui/page-title'
 
-export default function AnalyticsPage() {
+const AnalyticsPage = () => {
   const items = useSelector((state: any) => state.nutrition.items)
 
   return (
     <div className='flex flex-col min-h-screen w-full pl-0'>
+      <PageTitle title='Analytics Dashboard' />
       <Header
         title='Analytics Dashboard'
         breadcrumbs={[
@@ -68,3 +70,5 @@ export default function AnalyticsPage() {
     </div>
   )
 }
+
+export default AnalyticsPage

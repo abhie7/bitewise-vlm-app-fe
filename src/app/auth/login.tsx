@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router'
 import { Magnetic } from '@/components/ui/magnetic'
 import { PageTitle } from '@/components/ui/page-title'
 
-export function LoginPage() {
+const LoginPage = () => {
   const [mounted, setMounted] = useState(false)
   const navigate = useNavigate()
   const { user, isAuthSuccess } = useSelector((state: RootState) => state.auth)
@@ -119,3 +119,5 @@ export function LoginPage() {
     </div>
   )
 }
+
+export default LoginPage

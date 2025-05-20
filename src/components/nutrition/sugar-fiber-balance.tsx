@@ -1,99 +1,118 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { ChartComponentProps, NutritionItem } from '@/types'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { ChartComponentProps } from '@/types'
 import { motion } from 'framer-motion'
+import { RadialBarChart, RadialBar, ResponsiveContainer, Tooltip } from 'recharts'
 
 export function SugarFiberBalance({ items }: ChartComponentProps) {
-  const [chartData, setChartData] = useState<any[]>([])
+  const [chartData, setChartData] = useState<Array<{
+    name: string
+    value: number
+    fill: string
+    score: number
+  }>>([])
 
   useEffect(() => {
     if (items && items.length > 0) {
-      // Format data for each item
-      const formattedData = items.map((item: NutritionItem) => {
-        const name = item.fileName.split('.')[0] || 'Item'
-        return {
-          name: name.length > 10 ? name.substring(0, 10) + '...' : name,
-          sugar: item.sugar,
-          fiber: item.fiber,
-          ratio: item.fiber > 0 ? +(item.sugar / item.fiber).toFixed(2) : item.sugar > 0 ? 999 : 0,
-        }
-      })
+      const latestItem = items[0]
+      const nutrients = latestItem.rawAnalysisData?.nutrients || {}
 
-      setChartData(formattedData)
+      // Calculate scores based on recommended daily values
+      const scores = [
+        {
+          name: 'Protein',
+          value: Math.min((nutrients.protein?.amount || 0) / 50 * 100, 100),
+          fill: '#10b981',
+          score: nutrients.protein?.amount || 0
+        },
+        {
+          name: 'Fiber',
+          value: Math.min((nutrients.carbohydrates?.sub_nutrients?.dietary_fiber?.amount || 0) / 28 * 100, 100),
+          fill: '#3b82f6',
+          score: nutrients.carbohydrates?.sub_nutrients?.dietary_fiber?.amount || 0
+        },
+        {
+          name: 'Sugar',
+          value: Math.min((nutrients.carbohydrates?.sub_nutrients?.total_sugar?.amount || 0) / 25 * 100, 100),
+          fill: '#f97316',
+          score: nutrients.carbohydrates?.sub_nutrients?.total_sugar?.amount || 0
+        },
+        {
+          name: 'Fat',
+          value: Math.min((nutrients.total_fat?.amount || 0) / 65 * 100, 100),
+          fill: '#f59e0b',
+          score: nutrients.total_fat?.amount || 0
+        }
+      ]
+
+      setChartData(scores)
     }
   }, [items])
 
-  // Calculate the sugar to fiber ratio score
-  const getSugarFiberRatioQuality = (ratio: number): string => {
-    if (ratio === 0) return 'N/A'
-    if (ratio < 1) return 'Excellent'
-    if (ratio < 2) return 'Good'
-    if (ratio < 5) return 'Fair'
-    if (ratio < 10) return 'Poor'
-    return 'Very Poor'
-  }
-
-  // Calculate average ratio across all items
-  const averageRatio = chartData.length > 0
-    ? chartData.reduce((sum, item) => sum + item.ratio, 0) / chartData.length
-    : 0
-
-  const ratioQuality = getSugarFiberRatioQuality(averageRatio)
-
-  // Color based on quality
-  const getQualityColor = (quality: string): string => {
-    switch (quality) {
-      case 'Excellent': return 'text-green-500'
-      case 'Good': return 'text-teal-500'
-      case 'Fair': return 'text-amber-500'
-      case 'Poor': return 'text-orange-500'
-      case 'Very Poor': return 'text-red-500'
-      default: return 'text-gray-500'
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload
+      return (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-background border rounded-lg shadow-lg p-3"
+        >
+          <p className="text-sm font-medium">{data.name}</p>
+          <p className="text-lg font-bold" style={{ color: data.fill }}>
+            {data.score.toFixed(1)}g ({data.value.toFixed(0)}% of DV)
+          </p>
+        </motion.div>
+      )
     }
+    return null
   }
 
   return (
     <Card className="p-4 h-80">
       <CardContent className="p-0 h-full">
         {chartData.length > 0 ? (
-          <div className="h-full flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-sm font-medium">Sugar to Fiber Balance</h3>
-                <p className="text-xs text-muted-foreground">Lower ratio is better</p>
-              </div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className={`px-3 py-1 rounded-full text-xs font-medium ${getQualityColor(ratioQuality)} bg-muted`}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="h-full"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <RadialBarChart
+                innerRadius="30%"
+                outerRadius="100%"
+                data={chartData}
+                startAngle={180}
+                endAngle={0}
               >
-                Average Ratio: {averageRatio.toFixed(2)} - {ratioQuality}
+                <RadialBar
+                  minAngle={15}
+                  background
+                  clockWise={true}
+                  dataKey="value"
+                  animationBegin={0}
+                  animationDuration={1500}
+                />
+                <Tooltip content={<CustomTooltip />} />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <h3 className="text-sm font-medium text-muted-foreground">Nutrient Balance</h3>
+                <p className="text-2xl font-bold text-orange-500">
+                  {Math.round(chartData.reduce((acc, curr) => acc + curr.value, 0) / chartData.length)}%
+                </p>
               </motion.div>
             </div>
-
-            <div className="flex-1">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(value, name) => [
-                      `${value}${name === 'ratio' ? '' : 'g'}`,
-                      name.charAt(0).toUpperCase() + name.slice(1)
-                    ]}
-                  />
-                  <Legend />
-                  <Bar dataKey="sugar" fill="#f87171" name="Sugar" animationBegin={0} animationDuration={1000} />
-                  <Bar dataKey="fiber" fill="#4ade80" name="Fiber" animationBegin={300} animationDuration={1000} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          </motion.div>
         ) : (
           <div className="h-full flex items-center justify-center text-muted-foreground">
-            No sugar or fiber data available
+            No data available
           </div>
         )}
       </CardContent>

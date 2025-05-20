@@ -1,3 +1,4 @@
+import React from 'react'
 import { Suspense, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { Toaster } from '@/components/ui/sonner'
@@ -9,6 +10,7 @@ import { RootState } from './types'
 import socketClient from './sockets/socketClient'
 import { fetchUserNutrition } from './services/nutritionService'
 import { useAppDispatch } from './services/store'
+import { Spinner } from './components/ui/spinner'
 
 const App = () => {
   const { user, isAuthSuccess } = useSelector((state: RootState) => state.auth)
@@ -36,22 +38,36 @@ const App = () => {
   }, [isAuthSuccess, user, dispatch])
 
   const enhancedProtectedRoutes = createBrowserRouter([
-    ...protectedRoutes,
+    ...protectedRoutes.routes,
     { path: '*', element: <Navigate to='/dashboard' replace /> },
   ])
 
   const enhancedPublicRoutes = createBrowserRouter([
-    ...publicRoutes,
+    ...publicRoutes.routes,
     { path: '*', element: <Navigate to='/login' replace /> },
   ])
-
-  const routes = user ? enhancedProtectedRoutes : enhancedPublicRoutes
 
   return (
     <ThemeProvider>
       <Toaster richColors expand={true} />
-      <Suspense fallback={<div className='spinner-border' role='status' />}>
-        <RouterProvider key={user} router={routes} />
+      <Suspense
+        key={user}
+        fallback={
+          <div
+            className='spinner-border flex flex-col gap-1 items-center justify-center w-full h-screen'
+            role='status'
+          >
+            <Spinner variant='infinite' className='size-12 text-primary' />
+          </div>
+        }
+      >
+        <React.Fragment key={user}>
+          {user ? (
+              <RouterProvider router={enhancedProtectedRoutes} />
+          ) : (
+            <RouterProvider router={enhancedPublicRoutes} />
+          )}
+        </React.Fragment>
       </Suspense>
     </ThemeProvider>
   )

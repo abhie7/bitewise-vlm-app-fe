@@ -1,31 +1,32 @@
-import { RouteObject } from "react-router";
-import ProtectedLayout from "@/layouts/protected-layout";
-import Dashboard from "@/app/dashboard/page";
-import AnalyticsPage from "@/app/dashboard/analytics/page";
-import { Navigate } from "react-router";
-import CalendarPage from "@/app/calendar/page";
+import { lazy } from 'react'
+import { createHashRouter, Navigate } from 'react-router'
+
+const ProtectedLayout = lazy(() => import('@/layouts/protected-layout'))
+const Dashboard = lazy(() => import('@/app/dashboard/page'))
+const AnalyticsPage = lazy(() => import('@/app/dashboard/analytics/page'))
+const CalendarPage = lazy(() => import('@/app/calendar/page'))
 // import { PageNotFoundPage } from "@/app/404-not-found/page";
 
 // Define protected routes with proper typing
-const protectedRoutes: RouteObject[] = [
+const protectedRoutes = createHashRouter([
   {
-    path: "/",
+    path: '/',
     element: <ProtectedLayout />,
     children: [
       {
         index: true,
-        element: <Navigate to="/dashboard" replace />,
+        element: <Navigate to='/dashboard' replace />,
       },
       {
-        path: "/dashboard",
+        path: '/dashboard',
         element: <Dashboard />,
       },
       {
-        path: "/analytics",
+        path: '/analytics',
         element: <AnalyticsPage />,
       },
       {
-        path: "/calendar",
+        path: '/calendar',
         element: <CalendarPage />,
       },
       // Add other protected routes here
@@ -35,6 +36,6 @@ const protectedRoutes: RouteObject[] = [
       // },
     ],
   },
-];
+])
 
-export default protectedRoutes;
+export default protectedRoutes

@@ -6,7 +6,7 @@ import { RootState } from '@/store'
 import { useNavigate } from 'react-router'
 import { PageTitle } from '@/components/ui/page-title'
 
-export function RegisterPage() {
+const RegisterPage = () => {
   const [mounted, setMounted] = useState(false)
   const navigate = useNavigate()
   const { user, isAuthSuccess } = useSelector((state: RootState) => state.auth)
@@ -86,3 +86,5 @@ export function RegisterPage() {
     </div>
   )
 }
+
+export default RegisterPage
